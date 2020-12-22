@@ -1,14 +1,14 @@
 from datetime import datetime
 from flask_wtf import Form
-from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField
-from wtforms.validators import DataRequired, AnyOf, URL
+from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField, TextAreaField
+from wtforms.validators import DataRequired, AnyOf, URL, length
 
 class ShowForm(Form):
     artist_id = StringField(
-        'artist_id'
+        'artist_id', validators=[DataRequired()]
     )
     venue_id = StringField(
-        'venue_id'
+        'venue_id', validators=[DataRequired()]
     )
     start_time = DateTimeField(
         'start_time',
@@ -85,9 +85,6 @@ class VenueForm(Form):
     phone = StringField(
         'phone'
     )
-    image_link = StringField(
-        'image_link'
-    )
     genres = SelectMultipleField(
         # TODO implement enum restriction
         'genres', validators=[DataRequired()],
@@ -113,8 +110,21 @@ class VenueForm(Form):
             ('Other', 'Other'),
         ]
     )
+    image_link = StringField(
+        'image_link'
+    )
+    website = StringField(
+        'website', validators=[URL()]
+    )
     facebook_link = StringField(
         'facebook_link', validators=[URL()]
+    )
+    seeking_talent = BooleanField(
+        'seeking_talent',
+        default=False
+    )
+    seeking_description = TextAreaField(
+        'seeking_description', validators=[length(max=200)]
     )
 
 class ArtistForm(Form):
@@ -181,11 +191,7 @@ class ArtistForm(Form):
         ]
     )
     phone = StringField(
-        # TODO implement validation logic for state
         'phone'
-    )
-    image_link = StringField(
-        'image_link'
     )
     genres = SelectMultipleField(
         # TODO implement enum restriction
@@ -212,9 +218,22 @@ class ArtistForm(Form):
             ('Other', 'Other'),
         ]
     )
+    image_link = StringField(
+        'image_link'
+    )
+    website = StringField(
+        'website', validators=[URL()]
+    )
     facebook_link = StringField(
-        # TODO implement enum restriction
         'facebook_link', validators=[URL()]
+    )
+    seeking_venue = BooleanField(
+        'seeking_venue',
+        default=False
+    )
+    seeking_description = TextAreaField(
+        'seeking_description', validators=[length(max=200)]
     )
 
 # TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM
+#DONE
