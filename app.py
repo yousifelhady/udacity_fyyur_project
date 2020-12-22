@@ -189,14 +189,26 @@ def insert_venue_genres(genres):
     db.session.rollback()
     raise Exception('error occured while handling venue genres')
 
-@app.route('/venues/<venue_id>', methods=['DELETE'])
+@app.route('/venues/<venue_id>/delete', methods=['delete'])
 def delete_venue(venue_id):
   # TODO: Complete this endpoint for taking a venue_id, and using
   # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
-
   # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
   # clicking that button delete it from the db then redirect the user to the homepage
-  return None
+  try:
+    venue_tobe_deleted = Venue.query.get(venue_id)
+    venue_name = venue_tobe_deleted.name
+    print(venue_tobe_deleted)
+    db.session.delete(venue_tobe_deleted)
+    db.session.commit()
+    flash('Venue \"' + venue_name + '\" was successfully deleted!')
+  except:
+    print(sys.exc_info())
+    db.session.rollback()
+    flash('An error occured while deleting venue: ' + venue_name)
+  finally:
+    db.session.close()
+  return redirect(url_for('index'))
 
 @app.route('/venues')
 def venues():
