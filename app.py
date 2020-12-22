@@ -149,6 +149,7 @@ def venues():
       "num_upcoming_shows": 0,
     }]
   }]
+  #data = Venue.query.all()
   return render_template('pages/venues.html', areas=data);
 
 @app.route('/venues/search', methods=['POST'])
@@ -319,7 +320,8 @@ def delete_venue(venue_id):
 @app.route('/artists')
 def artists():
   # TODO: replace with real data returned from querying the database
-  data=[{
+  #DONE
+  '''data=[{
     "id": 4,
     "name": "Guns N Petals",
   }, {
@@ -328,23 +330,33 @@ def artists():
   }, {
     "id": 6,
     "name": "The Wild Sax Band",
-  }]
+  }]'''
+  data=Artist.query.order_by('id').all()
   return render_template('pages/artists.html', artists=data)
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
   # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
+  #DONE
   # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
   # search for "band" should return "The Wild Sax Band".
-  response={
+  '''response={
     "count": 1,
     "data": [{
       "id": 4,
       "name": "Guns N Petals",
       "num_upcoming_shows": 0,
     }]
-  }
-  return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
+  }'''
+  search_keyword=request.form.get('search_term', '')
+  print(search_keyword)
+  search_count=Artist.query.filter(Artist.name.ilike('%'+search_keyword+'%')).count()
+  print(search_count)
+  search_result=Artist.query.filter(Artist.name.ilike('%'+search_keyword+'%')).all()
+  print(search_result)
+  response={'count': search_count,
+    'data': search_result}
+  return render_template('pages/search_artists.html', results=response, search_term=search_keyword)
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
