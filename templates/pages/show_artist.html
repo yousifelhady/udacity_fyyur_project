@@ -40,18 +40,18 @@
 		{% endif %}
 	</div>
 	<div class="col-sm-6">
-		<img src="{{ artist.image_link }}" alt="Venue Image" />
+		<img src="{{ artist.image_link }}" alt="Artist Image" />
 	</div>
 </div>
 <section>
 	<h2 class="monospace">{{ artist.upcoming_shows_count }} Upcoming {% if artist.upcoming_shows_count == 1 %}Show{% else %}Shows{% endif %}</h2>
 	<div class="row">
-		{%for show in artist.upcoming_shows %}
+		{%for upcoming_show in artist.upcoming_shows %}
 		<div class="col-sm-4">
 			<div class="tile tile-show">
-				<img src="{{ show.venue_image_link }}" alt="Show Venue Image" />
-				<h5><a href="/venues/{{ show.venue_id }}">{{ show.venue_name }}</a></h5>
-				<h6>{{ show.start_time|datetime('full') }}</h6>
+				<img src="{{ upcoming_show.venue_image_link }}" alt="Show Venue Image" />
+				<h5><a href="/venues/{{ upcoming_show.venue_id }}">{{ upcoming_show.venue_name }}</a></h5>
+				<h6>{{ upcoming_show.start_time|datetime('full') }}</h6>
 			</div>
 		</div>
 		{% endfor %}

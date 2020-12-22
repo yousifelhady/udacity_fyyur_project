@@ -46,7 +46,7 @@ class Venue(db.Model):
     shows = db.relationship('Show', backref='venue_show', lazy=True)
 
     def __repr__(self):
-        return f'<ID: {self.id}, venue name: {self.name}>'
+        return f'Venue <id: {self.id}, name: {self.name}>'
     
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
     #DONE
@@ -72,7 +72,7 @@ class Artist(db.Model):
     shows = db.relationship('Show', backref='artist_show', lazy=True)
 
     def __repr__(self):
-        return f'<ID: {self.id}, artist name: {self.name}>'
+        return f'<Artist id: {self.id}, name: {self.name}>'
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
     #DONE
@@ -83,6 +83,9 @@ class ArtistGenre(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(), nullable=False)
     artist_id = db.Column(db.Integer, db.ForeignKey('artists.id'), nullable=False)
+
+    def __repr__(self):
+        return f'{self.name}'
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 #DONE
@@ -96,7 +99,7 @@ class Show(db.Model):
   start_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
   def __repr__(self):
-    return f'<ID: {self.id}, venue_id: {self.venue_id}, artist_id: {self.artist_id}, time: {self.start_time}>'
+    return f'Show <id: {self.id}, venue_id: {self.venue_id}, artist_id: {self.artist_id}, start_time: {self.start_time}>'
 
 #----------------------------------------------------------------------------#
 # Filters.
@@ -360,9 +363,10 @@ def search_artists():
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
-  # shows the venue page with the given venue_id
-  # TODO: replace with real venue data from the venues table, using venue_id
-  data1={
+  # shows the artist page with the given artist_id
+  # TODO: replace with real artist data from the artists table, using artist_id
+  #DONE
+  '''data1={
     "id": 4,
     "name": "Guns N Petals",
     "genres": ["Rock n Roll"],
@@ -432,9 +436,39 @@ def show_artist(artist_id):
     }],
     "past_shows_count": 0,
     "upcoming_shows_count": 3,
-  }
-  data = list(filter(lambda d: d['id'] == artist_id, [data1, data2, data3]))[0]
-  return render_template('pages/show_artist.html', artist=data)
+  }'''
+  select_artist=Artist.query.get(artist_id)
+  genres=ArtistGenre.query.filter_by(artist_id=artist_id).all()
+  select_artist.genres=genres
+
+  #get current datetime stamp
+  datetime_now=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+  upcoming_shows_for_artist=Show.query.filter(Show.artist_id==artist_id, Show.start_time>str(datetime_now))
+  upcoming_shows_count=upcoming_shows_for_artist.count()
+  select_artist.upcoming_shows_count=upcoming_shows_count
+
+  upcoming_shows=db.session.query(Venue, Show).join(Show).filter(Show.artist_id==artist_id, Show.start_time>str(datetime_now)).all()
+  select_artist.upcoming_shows=constructShows(upcoming_shows)
+
+  past_shows_for_artist=Show.query.filter(Show.artist_id==artist_id, Show.start_time<str(datetime_now))
+  past_shows_count=past_shows_for_artist.count()
+  select_artist.past_shows_count=past_shows_count
+
+  past_shows=db.session.query(Venue, Show).join(Show).filter(Show.artist_id==artist_id, Show.start_time<str(datetime_now)).all()
+  select_artist.past_shows=constructShows(past_shows)
+  
+  return render_template('pages/show_artist.html', artist=select_artist)
+
+def constructShows(shows):
+  _list = []
+  for show in shows:
+    item = {'venue_image_link': show[0].image_link,
+    'venue_id': show[0].id,
+    'venue_name': show[0].name,
+    'start_time': str(show[1].start_time)}
+    _list.append(item)
+  return _list
 
 #  Update
 #  ----------------------------------------------------------------
