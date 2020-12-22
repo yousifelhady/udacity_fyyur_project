@@ -58,6 +58,9 @@ class VenueGenre(db.Model):
     name = db.Column(db.String(), nullable=False)
     venue_id = db.Column(db.Integer, db.ForeignKey('venues.id'), nullable=False)
 
+    def __repr__(self):
+        return f'{self.name}'
+
 class Artist(db.Model):
     __tablename__ = 'artists'
 
@@ -205,7 +208,8 @@ def search_venues():
 def show_venue(venue_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
-  data1={
+  #DONE
+  '''data1={
     "id": 1,
     "name": "The Musical Hop",
     "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
@@ -281,9 +285,39 @@ def show_venue(venue_id):
     }],
     "past_shows_count": 1,
     "upcoming_shows_count": 1,
-  }
-  data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
-  return render_template('pages/show_venue.html', venue=data)
+  }'''
+  selected_venue=Venue.query.get(venue_id)
+  genres=VenueGenre.query.filter_by(venue_id=venue_id).all()
+  selected_venue.genres=genres
+
+  #get current datetime stamp
+  datetime_now=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+  upcoming_shows_for_venue=Show.query.filter(Show.venue_id==venue_id, Show.start_time>str(datetime_now))
+  upcoming_shows_count=upcoming_shows_for_venue.count()
+  selected_venue.upcoming_shows_count=upcoming_shows_count
+
+  upcoming_shows=db.session.query(Artist, Show).join(Show).filter(Show.venue_id==venue_id, Show.start_time>str(datetime_now)).all()
+  selected_venue.upcoming_shows=constructVenueShows(upcoming_shows)
+
+  past_shows_for_venue=Show.query.filter(Show.venue_id==venue_id, Show.start_time<str(datetime_now))
+  past_shows_count=past_shows_for_venue.count()
+  selected_venue.past_shows_count=past_shows_count
+
+  past_shows=db.session.query(Artist, Show).join(Show).filter(Show.venue_id==venue_id, Show.start_time<str(datetime_now)).all()
+  selected_venue.past_shows=constructVenueShows(past_shows)
+
+  return render_template('pages/show_venue.html', venue=selected_venue)
+
+def constructVenueShows(shows):
+  _list = []
+  for show in shows:
+    item = {'artist_image_link': show[0].image_link,
+    'artist_id': show[0].id,
+    'artist_name': show[0].name,
+    'start_time': str(show[1].start_time)}
+    _list.append(item)
+  return _list
 
 #  Create Venue
 #  ----------------------------------------------------------------
@@ -531,18 +565,18 @@ def show_artist(artist_id):
   select_artist.upcoming_shows_count=upcoming_shows_count
 
   upcoming_shows=db.session.query(Venue, Show).join(Show).filter(Show.artist_id==artist_id, Show.start_time>str(datetime_now)).all()
-  select_artist.upcoming_shows=constructShows(upcoming_shows)
+  select_artist.upcoming_shows=constructArtistShows(upcoming_shows)
 
   past_shows_for_artist=Show.query.filter(Show.artist_id==artist_id, Show.start_time<str(datetime_now))
   past_shows_count=past_shows_for_artist.count()
   select_artist.past_shows_count=past_shows_count
 
   past_shows=db.session.query(Venue, Show).join(Show).filter(Show.artist_id==artist_id, Show.start_time<str(datetime_now)).all()
-  select_artist.past_shows=constructShows(past_shows)
+  select_artist.past_shows=constructArtistShows(past_shows)
   
   return render_template('pages/show_artist.html', artist=select_artist)
 
-def constructShows(shows):
+def constructArtistShows(shows):
   _list = []
   for show in shows:
     item = {'venue_image_link': show[0].image_link,
