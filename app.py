@@ -320,6 +320,57 @@ def delete_venue(venue_id):
 
 #  Artists
 #  ----------------------------------------------------------------
+
+@app.route('/artists/create', methods=['GET'])
+def create_artist_form():
+  form = ArtistForm()
+  return render_template('forms/new_artist.html', form=form)
+
+@app.route('/artists/create', methods=['POST'])
+def create_artist_submission():
+  # TODO: insert form data as a new Venue record in the db, instead
+  #DONE
+  # TODO: modify data to be the data object returned from db insertion
+  #DONE
+  try:
+    print(request.form)
+    artist_name = request.form['name']
+    artist_city = request.form['city']
+    artist_state = request.form['state']
+    artist_phone = request.form['phone']
+    #artist_image = request.form['image_link']
+    artist_genres = request.form.to_dict(flat=False)['genres']
+    artist_facebook = request.form['facebook_link']
+
+    newArtist = Artist(name=artist_name, city=artist_city, state=artist_state, phone=artist_phone, image_link='', facebook_link=artist_facebook)
+
+    db.session.add(newArtist)
+    insert_artist_genres(artist_genres)
+    db.session.commit()
+    # on successful db insert, flash success
+    flash('Artist ' + artist_name + ' was successfully listed!')
+  except:
+    print(sys.exc_info())
+    db.session.rollback()
+    # TODO: on unsuccessful db insert, flash an error instead.
+    #DONE
+    flash('An error occurred. Artist ' + artist_name + ' could not be listed.')
+  finally:
+    db.session.close()
+  return render_template('pages/home.html')
+
+def insert_artist_genres(genres):
+  try:
+    #insert artist genres in artist_genres table
+    latest_artist = Artist.query.order_by(Artist.id.desc()).first()
+    for genre in genres:
+      newGenre = ArtistGenre(name=genre, artist_id=latest_artist.id)
+      db.session.add(newGenre)
+  except:
+    print(sys.exc_info())
+    db.session.rollback()
+    raise Exception('error occured while handling artist genres')
+
 @app.route('/artists')
 def artists():
   # TODO: replace with real data returned from querying the database
@@ -525,69 +576,15 @@ def edit_venue_submission(venue_id):
   # venue record with ID <venue_id> using the new attributes
   return redirect(url_for('show_venue', venue_id=venue_id))
 
-#  Create Artist
-#  ----------------------------------------------------------------
-
-@app.route('/artists/create', methods=['GET'])
-def create_artist_form():
-  form = ArtistForm()
-  return render_template('forms/new_artist.html', form=form)
-
-@app.route('/artists/create', methods=['POST'])
-def create_artist_submission():
-  # TODO: insert form data as a new Venue record in the db, instead
-  #DONE
-  # TODO: modify data to be the data object returned from db insertion
-  #DONE
-  try:
-    print(request.form)
-    artist_name = request.form['name']
-    artist_city = request.form['city']
-    artist_state = request.form['state']
-    artist_phone = request.form['phone']
-    #artist_image = request.form['image_link']
-    artist_genres = request.form.to_dict(flat=False)['genres']
-    artist_facebook = request.form['facebook_link']
-
-    newArtist = Artist(name=artist_name, city=artist_city, state=artist_state, phone=artist_phone, image_link='', facebook_link=artist_facebook)
-
-    db.session.add(newArtist)
-    insert_artist_genres(artist_genres)
-    db.session.commit()
-    # on successful db insert, flash success
-    flash('Artist ' + artist_name + ' was successfully listed!')
-  except:
-    print(sys.exc_info())
-    db.session.rollback()
-    # TODO: on unsuccessful db insert, flash an error instead.
-    #DONE
-    flash('An error occurred. Artist ' + artist_name + ' could not be listed.')
-  finally:
-    db.session.close()
-  return render_template('pages/home.html')
-
-def insert_artist_genres(genres):
-  try:
-    #insert artist genres in artist_genres table
-    latest_artist = Artist.query.order_by(Artist.id.desc()).first()
-    for genre in genres:
-      newGenre = ArtistGenre(name=genre, artist_id=latest_artist.id)
-      db.session.add(newGenre)
-  except:
-    print(sys.exc_info())
-    db.session.rollback()
-    raise Exception('error occured while handling artist genres')
-
-
 #  Shows
 #  ----------------------------------------------------------------
 
 @app.route('/shows')
 def shows():
   # displays list of shows at /shows
-  # TODO: replace with real venues data.
-  #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
+  # TODO: replace with real shows data.
+  #DONE
+  '''data=[{
     "venue_id": 1,
     "venue_name": "The Musical Hop",
     "artist_id": 4,
@@ -622,7 +619,17 @@ def shows():
     "artist_name": "The Wild Sax Band",
     "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
     "start_time": "2035-04-15T20:00:00.000Z"
-  }]
+  }]'''
+  shows=db.session.query(Show, Venue, Artist).join(Venue, Artist).all()
+  data=[]
+  for show in shows:
+    item = { 'venue_id': show[0].venue_id,
+    'venue_name': show[1].name,
+    'artist_id': show[0].artist_id,
+    'artist_name': show[2].name,
+    'artist_image_link': show[2].image_link,
+    'start_time': str(show[0].start_time) }
+    data.append(item)
   return render_template('pages/shows.html', shows=data)
 
 @app.route('/shows/create')
@@ -635,6 +642,7 @@ def create_shows():
 def create_show_submission():
   # called to create new shows in the db, upon submitting new show listing form
   # TODO: insert form data as a new Show record in the db, instead
+  #DONE
   try:
     artist_id = request.form['artist_id']
     venue_id = request.form['venue_id']
