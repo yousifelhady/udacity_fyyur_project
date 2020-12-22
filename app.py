@@ -123,15 +123,15 @@ app.jinja_env.filters['datetime'] = format_datetime
 def index():
   return render_template('pages/home.html')
 
-
 #  Venues
 #  ----------------------------------------------------------------
 
 @app.route('/venues')
 def venues():
   # TODO: replace with real venues data.
+  #DONE
   #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
+  '''data=[{
     "city": "San Francisco",
     "state": "CA",
     "venues": [{
@@ -151,9 +151,33 @@ def venues():
       "name": "The Dueling Pianos Bar",
       "num_upcoming_shows": 0,
     }]
-  }]
-  #data = Venue.query.all()
-  return render_template('pages/venues.html', areas=data);
+  }]'''
+  all_venues = Venue.query.all()
+  data=[]
+  city_state_list = getAllCityState(all_venues)
+  print(city_state_list)
+  for city_state in city_state_list:
+    city_state_venues = getAllCityStateVenues(city_state, all_venues)
+    item = {'city': city_state['city'],
+    'state': city_state['state'],
+    'venues': city_state_venues}
+    data.append(item)
+  return render_template('pages/venues.html', areas=data)
+
+def getAllCityState(all_venues):
+  city_state_list = []
+  for venue in all_venues:
+    city_state={'city': venue.city, 'state': venue.state}
+    if city_state not in city_state_list:
+      city_state_list.append(city_state)
+  return city_state_list
+
+def getAllCityStateVenues(city_state, all_venues):
+  city_state_venues = []
+  for venue in all_venues:
+    if venue.city == city_state['city'] and venue.state == city_state['state']:
+      city_state_venues.append(venue)
+  return city_state_venues
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
@@ -662,6 +686,9 @@ def create_show_submission():
   finally:
     db.session.close()
   return render_template('pages/home.html')
+
+#  Error Handlers
+#  ----------------------------------------------------------------
 
 @app.errorhandler(404)
 def not_found_error(error):
