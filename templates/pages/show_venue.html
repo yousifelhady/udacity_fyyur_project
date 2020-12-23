@@ -80,11 +80,19 @@
 <script>
 	document.getElementById('delete-venue').onclick = function(e) {
 		console.log('delete btn triggered', e);
-		const venue_id = e.target.dataset['id'];
-		fetch('/venues/' + venue_id + '/delete',
-		{
-			method: 'delete'
-		})
-	}
+		var result = confirm("Are you sure you want to delete?");
+		if (result) {
+			const venue_id = e.target.dataset['id'];
+			fetch('/venues/' + venue_id + '/delete',
+			{
+				method: 'delete'
+			})
+			.then(response => {
+        		if (response.redirected) {
+            		window.location.href = response.url;
+        		}
+    		})
+		}
+	};
 </script>
 {% endblock %}
