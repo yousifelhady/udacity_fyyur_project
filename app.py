@@ -5,7 +5,7 @@
 import json
 import dateutil.parser
 import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for
+from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -15,6 +15,7 @@ from flask_wtf import Form
 from forms import *
 from datetime import datetime
 import sys
+
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -611,58 +612,83 @@ def constructArtistShows(shows):
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
   # TODO: populate form with fields from artist with ID <artist_id>
-  #Partialy DONE
-  genre_choices = [('Alternative', 'Alternative'),
-            ('Blues', 'Blues'),
-            ('Classical', 'Classical'),
-            ('Country', 'Country'),
-            ('Electronic', 'Electronic'),
-            ('Folk', 'Folk'),
-            ('Funk', 'Funk'),
-            ('Hip-Hop', 'Hip-Hop'),
-            ('Heavy Metal', 'Heavy Metal'),
-            ('Instrumental', 'Instrumental'),
-            ('Jazz', 'Jazz'),
-            ('Musical Theatre', 'Musical Theatre'),
-            ('Pop', 'Pop'),
-            ('Punk', 'Punk'),
-            ('R&B', 'R&B'),
-            ('Reggae', 'Reggae'),
-            ('Rock n Roll', 'Rock n Roll'),
-            ('Soul', 'Soul'),
-            ('Other', 'Other')]
-  form = ArtistForm()
+  #DONE
   artist=Artist.query.get(artist_id)
-  genres_list = []
-  for genre in artist.genres:
-    _genre = (str(genre), str(genre))
-    genres_list.append(_genre)
-  print(genres_list)
-  form.genres.choices.clear()
-  form.genres.data = genres_list
-  form.genres.choices = genre_choices
-  form.genres.seeking_description = artist.seeking_description
+  form = ArtistForm(state=artist.state, 
+  genres=artist.genres, 
+  seeking_venue=artist.seeking_venue,
+  seeking_description=artist.seeking_description)
+  
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
   # TODO: take values from the form submitted, and update existing
   # artist record with ID <artist_id> using the new attributes
+  #DONE
+
+  artist=Artist.query.get(artist_id)
+  #update name
   name = request.form.get('name')
-  print(name)
+  if artist.name != name:
+    artist.name = name
+  #update city
   city = request.form.get('city')
+  if artist.city != city:
+    artist.city = city
+  #update state
   state = request.form.get('state')
+  if artist.state != state:
+    artist.state = state
+  #update phone
   phone = request.form.get('phone')
-  genres = request.form.to_dict(flat=False)['genres']
-  print(genres)
+  if artist.phone != phone:
+    artist.phone = phone
+  #update image link
   image_link = request.form.get('image_link')
+  if artist.image_link != image_link:
+    artist.image_link = image_link
+  #update website
   website = request.form.get('website')
+  if artist.website != website:
+    artist.website = website
+  #update facebook link
   facebook_link = request.form.get('facebook_link')
-  seeking_venue = request.form.get('seeking_venue')
-  print(seeking_venue)
+  if artist.facebook_link != facebook_link:
+    artist.facebook_link = facebook_link
+  #update seeking venue
+  seeking_venue = bool(request.form.get('seeking_venue'))
+  artist.seeking_venue = seeking_venue
+  #update seeking description
   seeking_description = request.form.get('seeking_description')
-  print(seeking_description)
+  if artist.seeking_description != seeking_description:
+    artist.seeking_description = seeking_description
+  #update genres
+  artist_current_genres=list(map(str, artist.genres))
+  genres = request.form.getlist('genres')
+  genres_tobe_added=list(set(genres) - set(artist_current_genres))
+  genres_tobe_removed=list(set(artist_current_genres) - set(genres))
+  update_artist_genres(artist_id, genres_tobe_added, genres_tobe_removed)
+
+  try:
+    db.session.commit()
+  except:
+    db.session.rollback()
+  finally:
+    db.session.close()
+
   return redirect(url_for('show_artist', artist_id=artist_id))
+
+def update_artist_genres(artist_id, genres_tobe_added, genres_tobe_removed):
+  try:
+    for genre in genres_tobe_added:
+      newGenre = ArtistGenre(name=genre, artist_id=artist_id)
+      db.session.add(newGenre)
+    for genre in genres_tobe_removed:
+      ArtistGenre.query.filter_by(name=genre).delete()
+  except:
+    db.session.rollback()
+    raise Exception('error occured while handling artist genres')
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
