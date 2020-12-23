@@ -61,23 +61,8 @@
     console.log(artist_id);
     fetch(`/artists/${artist_id}/edit`,
       {
-        method: 'post',
-        body: JSON.stringify({'name': form.name,
-                              'city': form.city,
-                              'state': form.state,
-                              'phone': form.phone,
-                              'genres': form.genres,
-                              'image_link': form.image_link,
-                              'website': form.website,
-                              'facebook_link': form.facebook_link,
-                              'seeking_venue': form.seeking_venue.data,
-                              'seeking_description': form.seeking_description}),
-        headers: {'Content-Type': 'application/json'}
+        method: 'post'
       }
     )
-    .then(function(response) 
-      {
-          return response.json();
-      })
   }
 </script>

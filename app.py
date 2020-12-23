@@ -692,29 +692,86 @@ def update_artist_genres(artist_id, genres_tobe_added, genres_tobe_removed):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
-  form = VenueForm()
-  venue={
-    "id": 1,
-    "name": "The Musical Hop",
-    "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-    "address": "1015 Folsom Street",
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "123-123-1234",
-    "website": "https://www.themusicalhop.com",
-    "facebook_link": "https://www.facebook.com/TheMusicalHop",
-    "seeking_talent": True,
-    "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-    "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
-  }
-  # TODO: populate form with values from venue with ID <venue_id>
+  venue=Venue.query.get(venue_id)
+  form = VenueForm(state=venue.state, 
+  genres=venue.genres, 
+  seeking_talent=venue.seeking_talent,
+  seeking_description=venue.seeking_description)
+
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
   # TODO: take values from the form submitted, and update existing
   # venue record with ID <venue_id> using the new attributes
+  #DONE
+
+  venue=Venue.query.get(venue_id)
+  #update name
+  name = request.form.get('name')
+  if venue.name != name:
+    venue.name = name
+  #update city
+  city = request.form.get('city')
+  if venue.city != city:
+    venue.city = city
+  #update state
+  state = request.form.get('state')
+  if venue.state != state:
+    venue.state = state
+  #update address
+  address = request.form.get('address')
+  if venue.address != address:
+    venue.address = address
+  #update phone
+  phone = request.form.get('phone')
+  if venue.phone != phone:
+    venue.phone = phone
+  #update image link
+  image_link = request.form.get('image_link')
+  if venue.image_link != image_link:
+    venue.image_link = image_link
+  #update website
+  website = request.form.get('website')
+  if venue.website != website:
+    venue.website = website
+  #update facebook link
+  facebook_link = request.form.get('facebook_link')
+  if venue.facebook_link != facebook_link:
+    venue.facebook_link = facebook_link
+  #update seeking venue
+  seeking_talent = bool(request.form.get('seeking_talent'))
+  venue.seeking_talent = seeking_talent
+  #update seeking description
+  seeking_description = request.form.get('seeking_description')
+  if venue.seeking_description != seeking_description:
+    venue.seeking_description = seeking_description
+  #update genres
+  venue_current_genres=list(map(str, venue.genres))
+  genres = request.form.getlist('genres')
+  genres_tobe_added=list(set(genres) - set(venue_current_genres))
+  genres_tobe_removed=list(set(venue_current_genres) - set(genres))
+  update_venue_genres(venue_id, genres_tobe_added, genres_tobe_removed)
+
+  try:
+    db.session.commit()
+  except:
+    db.session.rollback()
+  finally:
+    db.session.close()
+
   return redirect(url_for('show_venue', venue_id=venue_id))
+
+def update_venue_genres(venue_id, genres_tobe_added, genres_tobe_removed):
+  try:
+    for genre in genres_tobe_added:
+      newGenre = VenueGenre(name=genre, venue_id=venue_id)
+      db.session.add(newGenre)
+    for genre in genres_tobe_removed:
+      VenueGenre.query.filter_by(name=genre).delete()
+  except:
+    db.session.rollback()
+    raise Exception('error occured while handling venue genres')
 
 #  Shows
 #  ----------------------------------------------------------------

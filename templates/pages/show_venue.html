@@ -75,7 +75,14 @@
 	</div>
 </section>
 <div>
-	<button type="submit" id="delete-venue" data-id="{{ venue.id }}" class="btn btn-primary btn-lg">Delete Venue</button>
+	<div style="display: inline-block">
+		<form action="/venues/{{venue.id}}/edit" method="get">
+			<input type="submit" id="edit-venue" value="Edit Venue" class="btn btn-primary btn-lg"/>
+		</form>
+	</div>
+	<div style="display: inline-block">
+		<button type="submit" id="delete-venue" data-id="{{ venue.id }}" class="btn btn-primary btn-lg">Delete Venue</button>
+	</div>
 </div>
 <script>
 	document.getElementById('delete-venue').onclick = function(e) {
