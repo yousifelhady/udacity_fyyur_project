@@ -29,17 +29,56 @@
         {{ form.genres(class_ = 'form-control', placeholder='Genres, separated by commas', autofocus = true) }}
       </div>
       <div class="form-group">
+        <label for="image_link">Image Link</label>
+        {{ form.image_link(class_ = 'form-control', placeholder='http://', autofocus = true, value=artist.image_link) }}
+      </div>
+      <div class="form-group">
+        <label for="website">Website</label>
+        {{ form.website(class_ = 'form-control', placeholder='http://', autofocus = true, value=artist.website) }}
+      </div>
+      <div class="form-group">
           <label for="genres">Facebook Link</label>
           {{ form.facebook_link(class_ = 'form-control', placeholder='http://', autofocus = true, value=artist.facebook_link) }}
-        </div>
-      <input type="submit" value="Edit Artist" class="btn btn-primary btn-lg btn-block">
+      </div>
+      <div class="form-group">
+        <label for="seeking_venue">Seeking Venue?</label>
+        <br>
+        {{ form.seeking_venue(autofocus = true, value=artist.seeking_venue) }}
+      </div>
+      <div class="form-group">
+        <label for="seeking_description">Venue Description</label>
+        {{ form.seeking_description(class_ = 'form-control', autofocus = true, value=artist.seeking_description) }}
+      </div>
+      <input type="submit" id="editbtn" data-id="{{ artist.id }}" value="Edit Artist" class="btn btn-primary btn-lg btn-block">
     </form>
   </div>
 {% endblock %}
 <script>
-var genres = document.getElementById('genres');
-for (let i = 0; i < genres.options.length; i++) {
-  const element = genres.options[i];
-  console.log(element);
-}
+  document.getElementById('editbtn').onsubmit = function(e) {
+    e.preventDefault();
+    console.log('edit btn triggered', e);
+    const artist_id = e.target.dataset['id'];
+    console.log(artist_id);
+    console.log(form.name)
+    fetch(`/artists/${artist_id}/edit`,
+      {
+        method: 'post',
+        body: JSON.stringify({'name': form.name,
+                              'city': form.city,
+                              'state': form.state,
+                              'phone': form.phone,
+                              'genres': form.genres,
+                              'image_link': form.image_link,
+                              'website': form.website,
+                              'facebook_link': form.facebook_link,
+                              'seeking_venue': form.seeking_venue.data,
+                              'seeking_description': form.seeking_description}),
+        headers: {'Content-Type': 'application/json'}
+      }
+    )
+    .then(function(response) 
+      {
+          return response.json();
+      })
+  }
 </script>

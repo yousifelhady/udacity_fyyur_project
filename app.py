@@ -208,7 +208,7 @@ def delete_venue(venue_id):
     flash('An error occured while deleting venue: ' + venue_name)
   finally:
     db.session.close()
-  return redirect(url_for('index'))
+  return redirect(url_for('venues'))
 
 @app.route('/venues')
 def venues():
@@ -610,29 +610,58 @@ def constructArtistShows(shows):
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
-  form = ArtistForm()
-  '''artist={
-    "id": 4,
-    "name": "Guns N Petals",
-    "genres": ["Rock n Roll"],
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "326-123-5000",
-    "website": "https://www.gunsnpetalsband.com",
-    "facebook_link": "https://www.facebook.com/GunsNPetals",
-    "seeking_venue": True,
-    "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-    "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
-  }'''
   # TODO: populate form with fields from artist with ID <artist_id>
+  #Partialy DONE
+  genre_choices = [('Alternative', 'Alternative'),
+            ('Blues', 'Blues'),
+            ('Classical', 'Classical'),
+            ('Country', 'Country'),
+            ('Electronic', 'Electronic'),
+            ('Folk', 'Folk'),
+            ('Funk', 'Funk'),
+            ('Hip-Hop', 'Hip-Hop'),
+            ('Heavy Metal', 'Heavy Metal'),
+            ('Instrumental', 'Instrumental'),
+            ('Jazz', 'Jazz'),
+            ('Musical Theatre', 'Musical Theatre'),
+            ('Pop', 'Pop'),
+            ('Punk', 'Punk'),
+            ('R&B', 'R&B'),
+            ('Reggae', 'Reggae'),
+            ('Rock n Roll', 'Rock n Roll'),
+            ('Soul', 'Soul'),
+            ('Other', 'Other')]
+  form = ArtistForm()
   artist=Artist.query.get(artist_id)
+  genres_list = []
+  for genre in artist.genres:
+    _genre = (str(genre), str(genre))
+    genres_list.append(_genre)
+  print(genres_list)
+  form.genres.choices.clear()
+  form.genres.data = genres_list
+  form.genres.choices = genre_choices
+  form.genres.seeking_description = artist.seeking_description
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
   # TODO: take values from the form submitted, and update existing
   # artist record with ID <artist_id> using the new attributes
-
+  name = request.form.get('name')
+  print(name)
+  city = request.form.get('city')
+  state = request.form.get('state')
+  phone = request.form.get('phone')
+  genres = request.form.to_dict(flat=False)['genres']
+  print(genres)
+  image_link = request.form.get('image_link')
+  website = request.form.get('website')
+  facebook_link = request.form.get('facebook_link')
+  seeking_venue = request.form.get('seeking_venue')
+  print(seeking_venue)
+  seeking_description = request.form.get('seeking_description')
+  print(seeking_description)
   return redirect(url_for('show_artist', artist_id=artist_id))
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
