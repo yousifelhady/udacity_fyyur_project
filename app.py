@@ -739,7 +739,7 @@ def edit_venue_submission(venue_id):
   facebook_link = request.form.get('facebook_link')
   if venue.facebook_link != facebook_link:
     venue.facebook_link = facebook_link
-  #update seeking venue
+  #update seeking talent
   seeking_talent = bool(request.form.get('seeking_talent'))
   venue.seeking_talent = seeking_talent
   #update seeking description
@@ -850,15 +850,15 @@ def create_show_submission():
     db.session.add(newShow)
     db.session.commit()
     # on successful db insert, flash success
-    flash('Show was successfully listed!')
+    flash('Show is successfully listed!')
   except:
     print(sys.exc_info())
     db.session.rollback()
     # TODO: on unsuccessful db insert, flash an error instead.
-    flash('An error occurred. Show could not be listed.')
+    flash('Show could not be listed, either \"Artist ID\" or \"Venue ID\" or \"Start Time\" is not correct!')
   finally:
     db.session.close()
-  return render_template('pages/home.html')
+  return redirect(url_for('shows'))
 
 #  Error Handlers
 #  ----------------------------------------------------------------
